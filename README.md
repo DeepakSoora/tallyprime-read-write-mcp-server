@@ -80,6 +80,17 @@ This mode of setup is to be used, when using browser-based MCP client like ChatG
 
 ## Available Tools
 
+### query-database
+Executes SQL query on DuckDB in-memory database for querying cached Tally Prime report data in table generated as output by other tools (in tableID property). These tables are temporary and will be dropped after 15 minutes automatically.
+
+**Input**
+|Argument|Description|
+|--|--|
+|sql|SQL query to execute on DuckDB in-memory database|
+
+**Output**
+Query results in tab separated format
+
 ### list-master
 Extracts list of specific master for auto-completion and validation if master exists, during inference by LLM
 
@@ -274,6 +285,33 @@ Tabular output with columns as below
 |narration|Narration or Remarks of voucher|
 |tracking_number|Tracking number to reconcile pending quantity received by ignoring excess / missing quantity in actual purchase (against receipt note) and sales (against delivery note)|
 
+### stock-summary
+Extracts stock item summary with opening, inward, outward and closing quantities and values
+
+**Input**
+|Argument|Description|
+|--|--|
+|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
+|fromDate|Period start date|
+|toDate|Period end date|
+
+**Output**
+Tabular output with columns as below
+
+|Column|Description|
+|--|--|
+|name|Stock item name|
+|parent|Stock group|
+|opening_quantity|Opening quantity for the period|
+|opening_value|Opening value for the period|
+|inward_quantity|Inward (purchase) quantity during the period|
+|inward_value|Inward value during the period|
+|outward_quantity|Outward (sales) quantity during the period|
+|outward_value|Outward value during the period|
+|closing_quantity|Closing quantity at end of period|
+|closing_value|Closing value at end of period|
+
+
 ### bills-outstanding
 Extracts bill-wise outstanding Receivables / Payables report
 
@@ -294,6 +332,133 @@ Tabular output with columns as below
 |outstanding_amount|Pending amount as on date|
 |party_name|Ledger name of the party|
 |overdue_days|Count of days by which invoice is overdue|
+
+### create-ledger
+Creates a ledger master in Tally Prime (e.g., suppliers, customers, expense accounts, bank accounts). Supports optional fields like GST details, address, PAN, bank details etc.
+
+**Input**
+|Argument|Description|
+|--|--|
+|name|Ledger name - must be unique in Tally|
+|group|Parent group name (e.g., "Sundry Creditors", "Sundry Debtors", "Purchase Accounts", "Bank Accounts")|
+|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
+
+**Output**
+Success / Failure with created count
+
+### create-purchase-entry
+Creates a purchase voucher/invoice in Tally Prime. Supports "accounting" mode for simple ledger-to-ledger entries and "invoice" mode for purchases with inventory items. Additional ledger entries can be used for taxes (CGST, SGST, IGST), discounts and freight.
+
+**Input**
+|Argument|Description|
+|--|--|
+|date|Date in YYYY-MM-DD format|
+|mode|"accounting" for simple ledger entries, "invoice" for purchases with inventory items|
+|supplierLedger|Creditor/supplier ledger name|
+|purchaseLedger|Purchase account ledger name|
+|totalAmount (optional)|Total amount (required for accounting mode)|
+|inventoryEntries (optional)|Array of stock items with quantity, rate, unit (required for invoice mode)|
+|ledgerEntries (optional)|Additional entries for taxes, discounts, freight|
+|narration (optional)|Notes/remarks|
+|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
+
+**Output**
+Success / Failure with created count and voucherId
+
+### create-sales-entry
+Creates a sales voucher/invoice in Tally Prime. Supports "accounting" mode for simple ledger-to-ledger entries and "invoice" mode for sales with inventory items. Additional ledger entries can be used for taxes (CGST, SGST, IGST), discounts and freight.
+
+**Input**
+|Argument|Description|
+|--|--|
+|date|Date in YYYY-MM-DD format|
+|mode|"accounting" for simple ledger entries, "invoice" for sales with inventory items|
+|customerLedger|Customer/debtor ledger name|
+|salesLedger|Sales account ledger name|
+|totalAmount (optional)|Total amount (required for accounting mode)|
+|inventoryEntries (optional)|Array of stock items with quantity, rate, unit (required for invoice mode)|
+|ledgerEntries (optional)|Additional entries for taxes, discounts, freight|
+|narration (optional)|Notes/remarks|
+|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
+
+**Output**
+Success / Failure with created count and voucherId
+
+### create-payment-entry
+Creates a payment voucher in Tally Prime for recording cash/bank payments to suppliers, expenses, salaries etc. Supports paying multiple parties in a single voucher.
+
+**Input**
+|Argument|Description|
+|--|--|
+|date|Date in YYYY-MM-DD format|
+|cashBankLedger|Cash or Bank ledger name from which payment is made|
+|debitEntries|One or more ledger entries to debit (party/expense being paid), each with ledgerName and amount|
+|narration (optional)|Notes/remarks|
+|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
+
+**Output**
+Success / Failure with created count and voucherId
+
+### create-receipt-entry
+Creates a receipt voucher in Tally Prime for recording cash/bank receipts from customers, income etc. Supports receiving from multiple parties in a single voucher.
+
+**Input**
+|Argument|Description|
+|--|--|
+|date|Date in YYYY-MM-DD format|
+|cashBankLedger|Cash or Bank ledger name receiving the payment|
+|creditEntries|One or more ledger entries to credit (party paying), each with ledgerName and amount|
+|narration (optional)|Notes/remarks|
+|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
+
+**Output**
+Success / Failure with created count and voucherId
+
+### create-contra-entry
+Creates a contra voucher in Tally Prime for transferring funds between Cash and Bank accounts (e.g., cash deposit to bank, bank withdrawal to cash, inter-bank transfer)
+
+**Input**
+|Argument|Description|
+|--|--|
+|date|Date in YYYY-MM-DD format|
+|fromLedger|Source Cash/Bank ledger name (money going out)|
+|toLedger|Destination Cash/Bank ledger name (money coming in)|
+|amount|Transfer amount|
+|narration (optional)|Notes/remarks|
+|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
+
+**Output**
+Success / Failure with created count and voucherId
+
+### create-journal-entry
+Creates a journal voucher in Tally Prime for adjustments, provisions, write-offs, inter-account transfers etc. Total debit must equal total credit.
+
+**Input**
+|Argument|Description|
+|--|--|
+|date|Date in YYYY-MM-DD format|
+|debitEntries|One or more ledger entries to debit, each with ledgerName and amount|
+|creditEntries|One or more ledger entries to credit, each with ledgerName and amount|
+|narration (optional)|Notes/remarks|
+|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
+
+**Output**
+Success / Failure with created count and voucherId
+
+### import-purchase-vouchers-excel
+Imports multiple purchase vouchers from an Excel file (.xlsx, .xls, .csv) into Tally Prime. Supports two formats auto-detected based on column headers: **Accounting Mode** (one row per voucher with date, supplierLedger, purchaseLedger, totalAmount) and **Invoice Mode** (rows grouped by voucherId with stock item details). Use `validateOnly: true` to test before actual import.
+
+**Input**
+|Argument|Description|
+|--|--|
+|filePath|Absolute path to the Excel file (.xlsx, .xls, or .csv)|
+|sheetName (optional)|Sheet name to read (defaults to first sheet)|
+|validateOnly (optional)|If true, only validates without creating vouchers|
+|batchSize (optional)|Number of vouchers per batch (default: 10, max: 50)|
+|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
+
+**Output**
+Success / Failure summary with per-voucher results
 
 ## Contact
 Project developed & maintained by: **Dhananjay Gokhale**
