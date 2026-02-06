@@ -80,6 +80,29 @@ This mode of setup is to be used, when using browser-based MCP client like ChatG
 
 ## Available Tools
 
+|Tool|Mode|
+|--|--|
+|query-database|Read|
+|list-master|Read|
+|chart-of-accounts|Read|
+|trial-balance|Read|
+|balance-sheet|Read|
+|profit-loss|Read|
+|ledger-balance|Read|
+|ledger-account|Read|
+|stock-item-balance|Read|
+|stock-item-account|Read|
+|stock-summary|Read|
+|bills-outstanding|Read|
+|create-ledger|Write|
+|create-purchase-entry|Write|
+|create-sales-entry|Write|
+|create-payment-entry|Write|
+|create-receipt-entry|Write|
+|create-contra-entry|Write|
+|create-journal-entry|Write|
+|import-purchase-vouchers-excel|Batch Import|
+
 ### query-database
 Executes SQL query on DuckDB in-memory database for querying cached Tally Prime report data in table generated as output by other tools (in tableID property). These tables are temporary and will be dropped after 15 minutes automatically.
 
