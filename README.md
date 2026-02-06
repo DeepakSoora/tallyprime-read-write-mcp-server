@@ -1,5 +1,59 @@
-# Tally Prime MCP Server
-Tally Prime MCP (Model Context Protocol) Server implementation to feed Tally Prime ERP data to popular LLM like Claude, ChatGPT supporting MCP client. This MCP Server helps expose functionalities of Tally to LLM directly.
+# Tally Prime MCP Server - AI Integration for Tally ERP
+**Connect Tally Prime to ChatGPT, Claude AI & other LLMs using MCP (Model Context Protocol)**
+
+Automate your Tally workflows with AI. Read financial reports, create vouchers, bulk import from Excel, and ask natural language questions about your Tally data - all through a simple chat interface. No coding required.
+
+Whether you're a CA, accountant, or business owner - this tool lets you talk to your Tally data using AI platforms like **Claude AI** and **ChatGPT**.
+
+
+## What Can You Do With This?
+
+Here's what becomes possible when you connect Tally Prime to AI:
+
+- **Fetch financial reports instantly** - Ask AI to pull your Balance Sheet, Profit & Loss, Trial Balance, or Stock Summary from Tally in seconds
+- **Reconcile ledger mismatches** - Compare supplier ledger vs purchase ledger to spot discrepancies and mismatched entries
+- **Detect duplicate vouchers** - Let AI scan your vouchers to find double entries or suspicious duplicates
+- **Create vouchers from invoice photos** - Upload a photo/image of a purchase or sales invoice, and AI will read it and create the voucher in Tally automatically
+- **Create masters via chat** - Add new ledgers, suppliers, customers, expense accounts, and bank accounts just by chatting with AI
+- **Bulk import from Excel/CSV** - Import hundreds of purchase vouchers from Excel or CSV files into Tally in one go
+- **Track outstanding receivables & payables** - Check who owes you money, what you owe others, and which bills are overdue
+- **Query stock balances & movement** - Ask about current stock levels, inward/outward movement, and item-wise details for any period
+- **Ask anything in plain English** - "What were my total sales last month?", "Show me all payments to XYZ supplier", "Which invoices are overdue by more than 30 days?"
+
+
+## Available Tools
+
+|Tool|Mode|Description|
+|--|--|--|
+|query-database|Read|Run SQL queries on cached Tally report data using DuckDB|
+|list-master|Read|Fetch list of ledgers, groups, stock items, voucher types and other masters|
+|chart-of-accounts|Read|Get the complete group hierarchy for Balance Sheet and P&L|
+|trial-balance|Read|Extract Trial Balance with opening, debit, credit and closing balances|
+|balance-sheet|Read|Pull Balance Sheet as on any date|
+|profit-loss|Read|Pull Profit & Loss statement for any period|
+|ledger-balance|Read|Get closing balance of any ledger as on a specific date|
+|ledger-account|Read|View detailed ledger account with all voucher entries for a period|
+|stock-item-balance|Read|Check available quantity of any stock item as on a date|
+|stock-item-account|Read|View stock item movement with voucher-level details|
+|stock-summary|Read|Get stock summary with opening, inward, outward and closing quantities|
+|bills-outstanding|Read|Fetch outstanding receivables or payables with overdue days|
+|create-ledger|Write|Create new ledger masters (suppliers, customers, expense accounts, banks)|
+|create-purchase-entry|Write|Create purchase vouchers in accounting or invoice mode with tax support|
+|create-sales-entry|Write|Create sales vouchers in accounting or invoice mode with tax support|
+|create-payment-entry|Write|Record cash/bank payments to suppliers, expenses, salaries|
+|create-receipt-entry|Write|Record cash/bank receipts from customers and other income|
+|create-contra-entry|Write|Transfer funds between cash and bank accounts|
+|create-journal-entry|Write|Create journal entries for adjustments, provisions, write-offs|
+|import-purchase-vouchers-excel|Batch Import|Bulk import purchase vouchers from Excel/CSV files|
+
+
+## Supported Platform
+Implementation was tested on below AI platform
+
+|Platform|Local|Remote|
+|--|--|--|
+|Claude AI| :heavy_check_mark: | :heavy_check_mark: |
+|ChatGPT|| :heavy_check_mark: |
 
 
 ## Prerequisites
@@ -19,15 +73,6 @@ Port = 9000
 ## Download
 Avoid cloning repository directly. Utility is available for download (with required dependencies) on below link <br>
 [https://excelkida.com/resource/tally-mcp-server-v6.zip](https://excelkida.com/resource/tally-mcp-server-v6.zip)
-
-## Supported Platform
-Implementation was tested on below AI platform
-
-|Platform|Local|Remote|
-|--|--|--|
-|Claude AI| :heavy_check_mark: | :heavy_check_mark: |
-|ChatGPT|| :heavy_check_mark: |
-
 
 ## Setup (Local)
 This mode of setup is to be used when MCP Client (like Claude Desktop, Perplexity etc.) and Tally Prime both exists in local PC. MCP Client software itself runs the MCP Server internally in such scenario.
@@ -78,412 +123,8 @@ This mode of setup is to be used, when using browser-based MCP client like ChatG
 * [Linux-based Server](docs/server-setup-linux.md)
 * Windows Server (exploration in-progress)
 
-## Available Tools
-
-|Tool|Mode|
-|--|--|
-|query-database|Read|
-|list-master|Read|
-|chart-of-accounts|Read|
-|trial-balance|Read|
-|balance-sheet|Read|
-|profit-loss|Read|
-|ledger-balance|Read|
-|ledger-account|Read|
-|stock-item-balance|Read|
-|stock-item-account|Read|
-|stock-summary|Read|
-|bills-outstanding|Read|
-|create-ledger|Write|
-|create-purchase-entry|Write|
-|create-sales-entry|Write|
-|create-payment-entry|Write|
-|create-receipt-entry|Write|
-|create-contra-entry|Write|
-|create-journal-entry|Write|
-|import-purchase-vouchers-excel|Batch Import|
-
-### query-database
-Executes SQL query on DuckDB in-memory database for querying cached Tally Prime report data in table generated as output by other tools (in tableID property). These tables are temporary and will be dropped after 15 minutes automatically.
-
-**Input**
-|Argument|Description|
-|--|--|
-|sql|SQL query to execute on DuckDB in-memory database|
-
-**Output**
-Query results in tab separated format
-
-### list-master
-Extracts list of specific master for auto-completion and validation if master exists, during inference by LLM
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|collection|Valid collection of Tally|
-
-**Output**
-List (or array) of queries master
-
-Collections that can be queried:
-1. Group
-1. Ledger
-1. VoucherType
-1. Unit
-1. Godown
-1. StockGroup
-1. StockItem
-1. CostCentre
-1. CostCategory
-1. AttendanceType
-1. Company
-1. Currency
-1. GSTIN
-1. GSTClassification
-
-### chart-of-accounts
-Extracts Chart of Accounts (or Group hierarchy) useful for preparing Balance Sheet, Profit and Loss, Trial Balance
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-
-**Output**
-Tabular output with columns as below
-
-|Column|Description|
-|--|--|
-|group|Ledger name|
-|parent|Group under which ledger exists|
-|bs_pl|BS (Balance Sheet) / PL (Profit &amp; Loss)|
-|dr_cr|D (Debit) / C (Credit)|
-|affects_gross_profit|Y (Yes) / N (No)|
-
-
-### trial-balance
-Extracts Trial Balance for the specified period
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|fromDate|Period start date (useful for opening balance)|
-|toDate|Period end date for closing balance|
-
-**Output**
-Tabular output with columns as below
-
-|Column|Description|
-|--|--|
-|ledger|Ledger name|
-|group|Group under which ledger exists|
-|opening_balance|Opening Balance for the specified fromDate|
-|net_debit|Net Debit during the specified period|
-|net_credit|Net Credit during the specified period|
-|closing_balance|Closing Balance for the specified fromDate|
-
-
-### balance-sheet
-Extracts Balance Sheet as on date
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|toDate|as on date of Balance Sheet|
-
-**Output**
-Tabular output with columns as below
-
-|Column|Description|
-|--|--|
-|ledger|Ledger name|
-|group|Group under which ledger exists|
-|closing_balance|Closing Balance as on date|
-
-### profit-loss
-Extracts Profit &amp; Loss for the period
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|fromDate|Period start date|
-|toDate|Period end date|
-
-**Output**
-Tabular output with columns as below
-
-|Column|Description|
-|--|--|
-|ledger|Ledger name|
-|group|Group under which ledger exists|
-|amount|Amount of net activity (-ve = Expense / +ve = Income)|
-
-
-### ledger-balance
-Returns closing balance of ledger as on specified date
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|ledgerName|Ledger of which to query balance|
-|toDate|specific date for closing balance|
-
-**Output**
-Closing Balance of ledger (if exists)
-
-|Sign|Description|
-|--|--|
-|Negative (-)|Debit|
-|Positive (+)|Credit|
-
-Note: If specified ledger does not exists, LLM might invoke list-master tool to fetch list of ledgers. It will attempt to find closest possible ledger name for this list and re-run this action. This might produce un-predictable response.
-
-### ledger-account
-Extracts ledger account for the specified ledger for the given period
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|ledgerName|Ledger of which to query balance|
-|fromDate|period start date|
-|toDate|period end date|
-
-**Output**
-Tabular output with columns as below
-
-|Column|Description|
-|--|--|
-|date|Date of voucher|
-|voucher_type|Voucher Type|
-|voucher_number|Voucher Number|
-|party_ledger|Party ledger or opposite side ledger|
-|amount|Amount (negative = Debit / positive = Credit)|
-|narration|Narration or Remarks of voucher|
-
-### stock-item-balance
-Returns available quantity of stock item as on specified date
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|itemName|Stock Item of which to query available quantity|
-|toDate|specific date as on which to check quantity|
-
-**Output**
-Available Quantity of stock item (if exists)
-
-
-Note: If specified stock item does not exists, LLM might invoke list-master tool to fetch list of stock items. It will attempt to find closest possible stock item name for this list and re-run this action. This might produce un-predictable response.
-
-
-### stock-item-account
-Extracts account statement for stock item vouchers for the specified item for the given period
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|itemName|Ledger of which to query balance|
-|fromDate|period start date|
-|toDate|period end date|
-
-**Output**
-Tabular output with columns as below
-
-|Column|Description|
-|--|--|
-|date|Date of voucher|
-|voucher_type|Voucher Type|
-|voucher_number|Voucher Number|
-|party_ledger|Party ledger or opposite side ledger|
-|quantity|Quantity (negative = Outward / positive = Inward)|
-|amount|Amount (negative = Debit / positive = Credit)|
-|narration|Narration or Remarks of voucher|
-|tracking_number|Tracking number to reconcile pending quantity received by ignoring excess / missing quantity in actual purchase (against receipt note) and sales (against delivery note)|
-
-### stock-summary
-Extracts stock item summary with opening, inward, outward and closing quantities and values
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|fromDate|Period start date|
-|toDate|Period end date|
-
-**Output**
-Tabular output with columns as below
-
-|Column|Description|
-|--|--|
-|name|Stock item name|
-|parent|Stock group|
-|opening_quantity|Opening quantity for the period|
-|opening_value|Opening value for the period|
-|inward_quantity|Inward (purchase) quantity during the period|
-|inward_value|Inward value during the period|
-|outward_quantity|Outward (sales) quantity during the period|
-|outward_value|Outward value during the period|
-|closing_quantity|Closing quantity at end of period|
-|closing_value|Closing value at end of period|
-
-
-### bills-outstanding
-Extracts bill-wise outstanding Receivables / Payables report
-
-**Input**
-|Argument|Description|
-|--|--|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-|nature|receivable / payable|
-|toDate|Date on which outstanding position to fetch|
-
-**Output**
-Tabular output with columns as below
-
-|Column|Description|
-|--|--|
-|date|Date of purchase / sales invoice|
-|reference_number|Invoice number of purchase / sales invoice|
-|outstanding_amount|Pending amount as on date|
-|party_name|Ledger name of the party|
-|overdue_days|Count of days by which invoice is overdue|
-
-### create-ledger
-Creates a ledger master in Tally Prime (e.g., suppliers, customers, expense accounts, bank accounts). Supports optional fields like GST details, address, PAN, bank details etc.
-
-**Input**
-|Argument|Description|
-|--|--|
-|name|Ledger name - must be unique in Tally|
-|group|Parent group name (e.g., "Sundry Creditors", "Sundry Debtors", "Purchase Accounts", "Bank Accounts")|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-
-**Output**
-Success / Failure with created count
-
-### create-purchase-entry
-Creates a purchase voucher/invoice in Tally Prime. Supports "accounting" mode for simple ledger-to-ledger entries and "invoice" mode for purchases with inventory items. Additional ledger entries can be used for taxes (CGST, SGST, IGST), discounts and freight.
-
-**Input**
-|Argument|Description|
-|--|--|
-|date|Date in YYYY-MM-DD format|
-|mode|"accounting" for simple ledger entries, "invoice" for purchases with inventory items|
-|supplierLedger|Creditor/supplier ledger name|
-|purchaseLedger|Purchase account ledger name|
-|totalAmount (optional)|Total amount (required for accounting mode)|
-|inventoryEntries (optional)|Array of stock items with quantity, rate, unit (required for invoice mode)|
-|ledgerEntries (optional)|Additional entries for taxes, discounts, freight|
-|narration (optional)|Notes/remarks|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-
-**Output**
-Success / Failure with created count and voucherId
-
-### create-sales-entry
-Creates a sales voucher/invoice in Tally Prime. Supports "accounting" mode for simple ledger-to-ledger entries and "invoice" mode for sales with inventory items. Additional ledger entries can be used for taxes (CGST, SGST, IGST), discounts and freight.
-
-**Input**
-|Argument|Description|
-|--|--|
-|date|Date in YYYY-MM-DD format|
-|mode|"accounting" for simple ledger entries, "invoice" for sales with inventory items|
-|customerLedger|Customer/debtor ledger name|
-|salesLedger|Sales account ledger name|
-|totalAmount (optional)|Total amount (required for accounting mode)|
-|inventoryEntries (optional)|Array of stock items with quantity, rate, unit (required for invoice mode)|
-|ledgerEntries (optional)|Additional entries for taxes, discounts, freight|
-|narration (optional)|Notes/remarks|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-
-**Output**
-Success / Failure with created count and voucherId
-
-### create-payment-entry
-Creates a payment voucher in Tally Prime for recording cash/bank payments to suppliers, expenses, salaries etc. Supports paying multiple parties in a single voucher.
-
-**Input**
-|Argument|Description|
-|--|--|
-|date|Date in YYYY-MM-DD format|
-|cashBankLedger|Cash or Bank ledger name from which payment is made|
-|debitEntries|One or more ledger entries to debit (party/expense being paid), each with ledgerName and amount|
-|narration (optional)|Notes/remarks|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-
-**Output**
-Success / Failure with created count and voucherId
-
-### create-receipt-entry
-Creates a receipt voucher in Tally Prime for recording cash/bank receipts from customers, income etc. Supports receiving from multiple parties in a single voucher.
-
-**Input**
-|Argument|Description|
-|--|--|
-|date|Date in YYYY-MM-DD format|
-|cashBankLedger|Cash or Bank ledger name receiving the payment|
-|creditEntries|One or more ledger entries to credit (party paying), each with ledgerName and amount|
-|narration (optional)|Notes/remarks|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-
-**Output**
-Success / Failure with created count and voucherId
-
-### create-contra-entry
-Creates a contra voucher in Tally Prime for transferring funds between Cash and Bank accounts (e.g., cash deposit to bank, bank withdrawal to cash, inter-bank transfer)
-
-**Input**
-|Argument|Description|
-|--|--|
-|date|Date in YYYY-MM-DD format|
-|fromLedger|Source Cash/Bank ledger name (money going out)|
-|toLedger|Destination Cash/Bank ledger name (money coming in)|
-|amount|Transfer amount|
-|narration (optional)|Notes/remarks|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-
-**Output**
-Success / Failure with created count and voucherId
-
-### create-journal-entry
-Creates a journal voucher in Tally Prime for adjustments, provisions, write-offs, inter-account transfers etc. Total debit must equal total credit.
-
-**Input**
-|Argument|Description|
-|--|--|
-|date|Date in YYYY-MM-DD format|
-|debitEntries|One or more ledger entries to debit, each with ledgerName and amount|
-|creditEntries|One or more ledger entries to credit, each with ledgerName and amount|
-|narration (optional)|Notes/remarks|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-
-**Output**
-Success / Failure with created count and voucherId
-
-### import-purchase-vouchers-excel
-Imports multiple purchase vouchers from an Excel file (.xlsx, .xls, .csv) into Tally Prime. Supports two formats auto-detected based on column headers: **Accounting Mode** (one row per voucher with date, supplierLedger, purchaseLedger, totalAmount) and **Invoice Mode** (rows grouped by voucherId with stock item details). Use `validateOnly: true` to test before actual import.
-
-**Input**
-|Argument|Description|
-|--|--|
-|filePath|Absolute path to the Excel file (.xlsx, .xls, or .csv)|
-|sheetName (optional)|Sheet name to read (defaults to first sheet)|
-|validateOnly (optional)|If true, only validates without creating vouchers|
-|batchSize (optional)|Number of vouchers per batch (default: 10, max: 50)|
-|targetCompany (optional)|Company name of the target company in Tally. Skipping this defaults to Active company|
-
-**Output**
-Success / Failure summary with per-voucher results
-
 ## Contact
 Project developed & maintained by: **Deepak Soora**
 
 Email: **deepu.soora@gmail.com** <br>
+LInkedIn: **https://www.linkedin.com/in/deepaksoora/**
