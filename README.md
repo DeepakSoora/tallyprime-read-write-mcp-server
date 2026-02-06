@@ -461,7 +461,6 @@ Imports multiple purchase vouchers from an Excel file (.xlsx, .xls, .csv) into T
 Success / Failure summary with per-voucher results
 
 ## Contact
-Project developed & maintained by: **Dhananjay Gokhale**
+Project developed & maintained by: **Deepak Soora**
 
-Email: **info@excelkida.com** <br>
-Whatsapp: **(+91) 90284-63366**
+Email: **deepu.soora@gmail.com** <br>
