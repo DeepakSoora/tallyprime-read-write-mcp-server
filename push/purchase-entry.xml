@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ENVELOPE>
+    <HEADER>
+        <VERSION>1</VERSION>
+        <TALLYREQUEST>Import</TALLYREQUEST>
+        <TYPE>Data</TYPE>
+        <ID>Vouchers</ID>
+    </HEADER>
+    <BODY>
+        <DESC>
+            <STATICVARIABLES>
+                <nunjuck>if targetCompany</nunjuck>
+                <SVCURRENTCOMPANY>{{targetCompany | escape}}</SVCURRENTCOMPANY>
+                <nunjuck>endif</nunjuck>
+            </STATICVARIABLES>
+        </DESC>
+        <DATA>
+            <TALLYMESSAGE xmlns:UDF="TallyUDF">
+                <VOUCHER VCHTYPE="Purchase" ACTION="Create">
+                    <DATE>{{date}}</DATE>
+                    <nunjuck>if voucherNumber</nunjuck>
+                    <VOUCHERNUMBER>{{voucherNumber | escape}}</VOUCHERNUMBER>
+                    <nunjuck>endif</nunjuck>
+                    <VOUCHERTYPENAME>Purchase</VOUCHERTYPENAME>
+                    <PARTYLEDGERNAME>{{supplierLedger | escape}}</PARTYLEDGERNAME>
+                    <nunjuck>if narration</nunjuck>
+                    <NARRATION>{{narration | escape}}</NARRATION>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if mode == "invoice"</nunjuck>
+                    <ISINVOICE>Yes</ISINVOICE>
+                    <nunjuck>endif</nunjuck>
+
+                    <nunjuck>if mode == "accounting"</nunjuck>
+                    <comment>begin</comment>Accounting Mode: Simple ledger-to-ledger entry<comment>end</comment>
+                    <ALLLEDGERENTRIES.LIST>
+                        <LEDGERNAME>{{purchaseLedger | escape}}</LEDGERNAME>
+                        <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+                        <AMOUNT>-{{totalAmount}}</AMOUNT>
+                    </ALLLEDGERENTRIES.LIST>
+                    <ALLLEDGERENTRIES.LIST>
+                        <LEDGERNAME>{{supplierLedger | escape}}</LEDGERNAME>
+                        <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                        <AMOUNT>{{totalAmount}}</AMOUNT>
+                    </ALLLEDGERENTRIES.LIST>
+                    <nunjuck>endif</nunjuck>
+
+                    <nunjuck>if mode == "invoice"</nunjuck>
+                    <comment>begin</comment>Invoice Mode: With inventory items<comment>end</comment>
+                    <nunjuck>for item in inventoryEntries</nunjuck>
+                    <ALLINVENTORYENTRIES.LIST>
+                        <STOCKITEMNAME>{{item.stockItemName | escape}}</STOCKITEMNAME>
+                        <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+                        <RATE>{{item.rate}}/{{item.unit | escape}}</RATE>
+                        <AMOUNT>-{{item.quantity * item.rate}}</AMOUNT>
+                        <ACTUALQTY>{{item.quantity}} {{item.unit | escape}}</ACTUALQTY>
+                        <BILLEDQTY>{{item.quantity}} {{item.unit | escape}}</BILLEDQTY>
+                        <ACCOUNTINGALLOCATIONS.LIST>
+                            <LEDGERNAME>{{purchaseLedger | escape}}</LEDGERNAME>
+                            <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+                            <AMOUNT>-{{item.quantity * item.rate}}</AMOUNT>
+                        </ACCOUNTINGALLOCATIONS.LIST>
+                    </ALLINVENTORYENTRIES.LIST>
+                    <nunjuck>endfor</nunjuck>
+
+                    <comment>begin</comment>Supplier ledger entry for invoice mode<comment>end</comment>
+                    <LEDGERENTRIES.LIST>
+                        <LEDGERNAME>{{supplierLedger | escape}}</LEDGERNAME>
+                        <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                        <AMOUNT>{{invoiceTotal}}</AMOUNT>
+                    </LEDGERENTRIES.LIST>
+
+                    <comment>begin</comment>Additional ledger entries (taxes, discounts, freight)<comment>end</comment>
+                    <nunjuck>for entry in ledgerEntries</nunjuck>
+                    <LEDGERENTRIES.LIST>
+                        <LEDGERNAME>{{entry.ledgerName | escape}}</LEDGERNAME>
+                        <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+                        <AMOUNT>-{{entry.amount}}</AMOUNT>
+                    </LEDGERENTRIES.LIST>
+                    <nunjuck>endfor</nunjuck>
+                    <nunjuck>endif</nunjuck>
+                </VOUCHER>
+            </TALLYMESSAGE>
+        </DATA>
+    </BODY>
+</ENVELOPE>

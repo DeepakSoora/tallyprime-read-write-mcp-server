@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ENVELOPE>
+    <HEADER>
+        <VERSION>1</VERSION>
+        <TALLYREQUEST>Import</TALLYREQUEST>
+        <TYPE>Data</TYPE>
+        <ID>All Masters</ID>
+    </HEADER>
+    <BODY>
+        <DESC>
+            <STATICVARIABLES>
+                <nunjuck>if targetCompany</nunjuck>
+                <SVCURRENTCOMPANY>{{targetCompany | escape}}</SVCURRENTCOMPANY>
+                <nunjuck>endif</nunjuck>
+            </STATICVARIABLES>
+        </DESC>
+        <DATA>
+            <TALLYMESSAGE xmlns:UDF="TallyUDF">
+                <LEDGER NAME="{{name | escape}}" ACTION="Create">
+                    <NAME>{{name | escape}}</NAME>
+                    <PARENT>{{group | escape}}</PARENT>
+                    <nunjuck>if openingBalance</nunjuck>
+                    <OPENINGBALANCE>{{openingBalance}}</OPENINGBALANCE>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if mailingName</nunjuck>
+                    <MAILINGNAME>{{mailingName | escape}}</MAILINGNAME>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if address</nunjuck>
+                    <ADDRESS>{{address | escape}}</ADDRESS>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if country</nunjuck>
+                    <COUNTRYNAME>{{country | escape}}</COUNTRYNAME>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if state</nunjuck>
+                    <LEDSTATENAME>{{state | escape}}</LEDSTATENAME>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if pincode</nunjuck>
+                    <PINCODE>{{pincode | escape}}</PINCODE>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if gstRegistrationType</nunjuck>
+                    <GSTREGISTRATIONTYPE>{{gstRegistrationType | escape}}</GSTREGISTRATIONTYPE>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if gstin</nunjuck>
+                    <PARTYGSTIN>{{gstin | escape}}</PARTYGSTIN>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if panNumber</nunjuck>
+                    <INCOMETAXNUMBER>{{panNumber | escape}}</INCOMETAXNUMBER>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if bankAccountNumber</nunjuck>
+                    <BANKACCHOLDERNAME>{{bankAccountHolderName | escape}}</BANKACCHOLDERNAME>
+                    <BANKACCOUNTNUMBER>{{bankAccountNumber | escape}}</BANKACCOUNTNUMBER>
+                    <IFSCODE>{{ifscCode | escape}}</IFSCODE>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if email</nunjuck>
+                    <EMAIL>{{email | escape}}</EMAIL>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if phone</nunjuck>
+                    <LEDGERPHONE>{{phone | escape}}</LEDGERPHONE>
+                    <nunjuck>endif</nunjuck>
+                </LEDGER>
+            </TALLYMESSAGE>
+        </DATA>
+    </BODY>
+</ENVELOPE>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ENVELOPE>
+    <HEADER>
+        <VERSION>1</VERSION>
+        <TALLYREQUEST>Import</TALLYREQUEST>
+        <TYPE>Data</TYPE>
+        <ID>Vouchers</ID>
+    </HEADER>
+    <BODY>
+        <DESC>
+            <STATICVARIABLES>
+                <nunjuck>if targetCompany</nunjuck>
+                <SVCURRENTCOMPANY>{{targetCompany | escape}}</SVCURRENTCOMPANY>
+                <nunjuck>endif</nunjuck>
+            </STATICVARIABLES>
+        </DESC>
+        <DATA>
+            <TALLYMESSAGE xmlns:UDF="TallyUDF">
+                <VOUCHER VCHTYPE="Payment" ACTION="Create">
+                    <DATE>{{date}}</DATE>
+                    <nunjuck>if voucherNumber</nunjuck>
+                    <VOUCHERNUMBER>{{voucherNumber | escape}}</VOUCHERNUMBER>
+                    <nunjuck>endif</nunjuck>
+                    <VOUCHERTYPENAME>Payment</VOUCHERTYPENAME>
+                    <nunjuck>if partyLedger</nunjuck>
+                    <PARTYLEDGERNAME>{{partyLedger | escape}}</PARTYLEDGERNAME>
+                    <nunjuck>endif</nunjuck>
+                    <nunjuck>if narration</nunjuck>
+                    <NARRATION>{{narration | escape}}</NARRATION>
+                    <nunjuck>endif</nunjuck>
+
+                    <comment>begin</comment>Debit entries (parties/expenses being paid)<comment>end</comment>
+                    <nunjuck>for entry in debitEntries</nunjuck>
+                    <ALLLEDGERENTRIES.LIST>
+                        <LEDGERNAME>{{entry.ledgerName | escape}}</LEDGERNAME>
+                        <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+                        <AMOUNT>-{{entry.amount}}</AMOUNT>
+                    </ALLLEDGERENTRIES.LIST>
+                    <nunjuck>endfor</nunjuck>
+
+                    <comment>begin</comment>Credit entry (Cash/Bank paying out)<comment>end</comment>
+                    <ALLLEDGERENTRIES.LIST>
+                        <LEDGERNAME>{{cashBankLedger | escape}}</LEDGERNAME>
+                        <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                        <AMOUNT>{{totalAmount}}</AMOUNT>
+                    </ALLLEDGERENTRIES.LIST>
+                </VOUCHER>
+            </TALLYMESSAGE>
+        </DATA>
+    </BODY>
+</ENVELOPE>

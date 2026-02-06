@@ -206,6 +206,200 @@ function substituteTDLParameters(msg: string, substitutions: Map<string, any>): 
     return retval;
 }
 
+export function handlePush(templateName: string, inputParams: Map<string, any>): Promise<m.ModelPushResponse> {
+    return new Promise<m.ModelPushResponse>(async (resolve, reject) => {
+        let retval: m.ModelPushResponse = {
+            success: false
+        };
+        try {
+            // Load XML template from push folder
+            let tmplXML = fs.readFileSync(path.join(__dirname, `../push/${templateName}.xml`), 'utf-8');
+
+            // Build context object for nunjucks
+            let context: any = {};
+            inputParams.forEach((v, k) => {
+                context[k] = v;
+            });
+
+            // Render template with nunjucks
+            let xmlRequest = nunjucks.renderString(tmplXML, context);
+
+            // Send to Tally
+            let xmlResponse = await postTallyXML(xmlRequest);
+
+            // Parse the response
+            retval = parsePushResponse(xmlResponse);
+        } catch (err: any) {
+            retval.success = false;
+            retval.errors = [err.message || 'Unknown error occurred'];
+        } finally {
+            resolve(retval);
+        }
+    });
+}
+
+export function handleBatchPush(
+    templateName: string,
+    vouchers: any[],
+    batchSize: number = 10,
+    targetCompany?: string
+): Promise<m.BulkImportResult> {
+    return new Promise<m.BulkImportResult>(async (resolve) => {
+        const results: m.VoucherImportResult[] = [];
+        let successCount = 0;
+        let failureCount = 0;
+
+        try {
+            // Load XML template
+            const tmplXML = fs.readFileSync(path.join(__dirname, `../push/${templateName}.xml`), 'utf-8');
+
+            // Process vouchers in batches
+            for (let i = 0; i < vouchers.length; i += batchSize) {
+                const batch = vouchers.slice(i, i + batchSize);
+
+                // Build context for this batch
+                const context: any = {
+                    vouchers: batch,
+                    targetCompany: targetCompany
+                };
+
+                try {
+                    // Render template with batch
+                    const xmlRequest = nunjucks.renderString(tmplXML, context);
+
+                    // Send to Tally
+                    const xmlResponse = await postTallyXML(xmlRequest);
+
+                    // Parse response
+                    const response = parsePushResponse(xmlResponse);
+
+                    // Record results for each voucher in batch
+                    for (let j = 0; j < batch.length; j++) {
+                        const voucher = batch[j];
+                        if (response.success) {
+                            successCount++;
+                            results.push({
+                                rowNumber: voucher.rowNumber || (i + j + 1),
+                                success: true,
+                                tallyVoucherId: response.lastvchid
+                            });
+                        } else {
+                            // If batch failed, mark all vouchers in batch as failed
+                            failureCount++;
+                            results.push({
+                                rowNumber: voucher.rowNumber || (i + j + 1),
+                                success: false,
+                                errors: response.errors || ['Unknown error']
+                            });
+                        }
+                    }
+                } catch (batchErr: any) {
+                    // Mark all vouchers in failed batch
+                    for (let j = 0; j < batch.length; j++) {
+                        const voucher = batch[j];
+                        failureCount++;
+                        results.push({
+                            rowNumber: voucher.rowNumber || (i + j + 1),
+                            success: false,
+                            errors: [batchErr.message || 'Batch processing error']
+                        });
+                    }
+                }
+            }
+
+            resolve({
+                success: failureCount === 0,
+                totalVouchers: vouchers.length,
+                successCount,
+                failureCount,
+                results
+            });
+
+        } catch (err: any) {
+            // Complete failure - couldn't even load template
+            resolve({
+                success: false,
+                totalVouchers: vouchers.length,
+                successCount: 0,
+                failureCount: vouchers.length,
+                results: vouchers.map((v, i) => ({
+                    rowNumber: v.rowNumber || (i + 1),
+                    success: false,
+                    errors: [err.message || 'Failed to process vouchers']
+                }))
+            });
+        }
+    });
+}
+
+function parsePushResponse(xmlResponse: string): m.ModelPushResponse {
+    let retval: m.ModelPushResponse = {
+        success: false
+    };
+
+    try {
+        if (!xmlResponse) {
+            retval.errors = ['Empty response received from Tally'];
+            return retval;
+        }
+
+        let xmlParser = new XMLParser({
+            parseTagValue: false,
+            isArray(tagName) {
+                return tagName === 'LINEERROR';
+            }
+        });
+        let resultObj = xmlParser.parse(xmlResponse);
+
+        // Navigate to IMPORTRESULT
+        let importResult = resultObj?.ENVELOPE?.BODY?.DATA?.IMPORTRESULT;
+        if (!importResult) {
+            // Check for exception
+            if (xmlResponse.includes('<EXCEPTION>')) {
+                let exceptionMatch = xmlResponse.match(/<EXCEPTION>(.+?)<\/EXCEPTION>/);
+                retval.errors = [exceptionMatch ? exceptionMatch[1] : 'Unknown Tally exception'];
+                return retval;
+            }
+            retval.errors = ['Invalid response structure from Tally'];
+            return retval;
+        }
+
+        // Extract counts
+        let created = parseInt(importResult.CREATED || '0');
+        let altered = parseInt(importResult.ALTERED || '0');
+        let errors = parseInt(importResult.ERRORS || '0');
+        let lastvchid = importResult.LASTVCHID || '';
+
+        retval.created = created;
+        retval.altered = altered;
+        retval.lastvchid = lastvchid;
+
+        // Check for errors
+        if (errors > 0 || (created === 0 && altered === 0)) {
+            retval.success = false;
+            retval.errors = [];
+
+            // Extract line errors
+            let lineErrors = importResult.LINEERROR;
+            if (lineErrors && Array.isArray(lineErrors)) {
+                retval.errors = lineErrors.map((e: string) => e);
+            } else if (lineErrors) {
+                retval.errors = [lineErrors];
+            }
+
+            if (retval.errors.length === 0) {
+                retval.errors = ['Voucher creation failed - no records created or altered'];
+            }
+        } else {
+            retval.success = true;
+        }
+    } catch (err: any) {
+        retval.errors = [err.message || 'Error parsing Tally response'];
+    }
+
+    return retval;
+}
+
 function extractReport(reportConfig: m.ModelPullReportInfo, reportInputParams: Map<string, any>): Promise<m.ModelPullResponse> {
     return new Promise<m.ModelPullResponse>(async (resolve, reject) => {
         let retval: m.ModelPullResponse = {

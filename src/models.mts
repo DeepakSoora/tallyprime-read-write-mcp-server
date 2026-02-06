@@ -27,3 +27,29 @@ export interface ModelPullReportInfo {
     input: ModelPullReportInputInfo[];
     output: ModelPullReportOutputInfo;
 }
+
+export interface ModelPushResponse {
+    success: boolean;
+    created?: number;
+    altered?: number;
+    lastvchid?: string;
+    errors?: string[];
+}
+
+// Bulk import interfaces
+export interface VoucherImportResult {
+    rowNumber: number;
+    voucherId?: string;
+    success: boolean;
+    tallyVoucherId?: string;
+    errors?: string[];
+}
+
+export interface BulkImportResult {
+    success: boolean;
+    totalVouchers: number;
+    successCount: number;
+    failureCount: number;
+    results: VoucherImportResult[];
+    parseWarnings?: string[];
+}
