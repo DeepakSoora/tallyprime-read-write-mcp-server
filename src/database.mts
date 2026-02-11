@@ -66,8 +66,8 @@ export function cacheTable(reportName: string, data: any[]): Promise<string> {
                     }
                     else if (col.datatype === 'date') {
                         if (typeof value === 'object' && value instanceof Date) {
-                            // calculate days since epoch from value
-                            const daysSinceEpoch = Math.floor(value.getTime() / (1000 * 60 * 60 * 24));
+                            // calculate days since epoch using local date components (timezone-safe)
+                            const daysSinceEpoch = Math.floor(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()) / (1000 * 60 * 60 * 24));
                             const _value = new duckdb.DuckDBDateValue(daysSinceEpoch);
                             dbAppender.appendDate(_value);
                         }
@@ -113,9 +113,11 @@ export async function executeSQL(sql: string): Promise<string> {
                     let cellValue = lstData[r][c]?.valueOf();
                     let cellText  = lstData[r][c]?.toString() || '';
                     if (dataType.typeId === duckdb.DuckDBTypeId.DATE) {
-                        // convert date to YYYY-MM-DD format
-                        if (cellValue && typeof cellValue === 'object' && cellValue instanceof Date)
-                            cellText = cellValue.toISOString().substring(0,10);
+                        // convert date to YYYY-MM-DD format using local date components (timezone-safe)
+                        if (cellValue && typeof cellValue === 'object' && cellValue instanceof Date) {
+                            const d = cellValue as Date;
+                            cellText = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                        }
                     }
                     else if (dataType.typeId === duckdb.DuckDBTypeId.DECIMAL) {
                         // convert decimal to number to get rid of extra 0
