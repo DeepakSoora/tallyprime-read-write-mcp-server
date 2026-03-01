@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dhananjay1405/tally-mcp-server.git"
+    "url": "git+https://github.com/DeepakSoora/tallyprime-read-write-mcp-server.git"
   },
-  "author": "",
+  "author": "DeepakSoora",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/dhananjay1405/tally-mcp-server/issues"
+    "url": "https://github.com/DeepakSoora/tallyprime-read-write-mcp-server/issues"
   },
-  "homepage": "https://github.com/dhananjay1405/tally-mcp-server#readme",
+  "homepage": "https://github.com/DeepakSoora/tallyprime-read-write-mcp-server#readme",
   "dependencies": {
     "@duckdb/node-api": "^1.4.1-r.4",
     "@modelcontextprotocol/sdk": "^1.18.2",
