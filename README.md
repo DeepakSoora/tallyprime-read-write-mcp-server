@@ -53,6 +53,7 @@ Implementation was tested on below AI platform
 |Platform|Local|Remote|
 |--|--|--|
 |Claude AI| :heavy_check_mark: | :heavy_check_mark: |
+|Gemini CLI| :heavy_check_mark: | |
 |ChatGPT|| :heavy_check_mark: |
 
 
@@ -112,6 +113,20 @@ Save the file. Close Claude Desktop (menu &gt; File &gt; Exit) and again re-laun
 Verify by clicking on Tools button and check if Tally Prime appears in the list (screenshot below)
 
 <image src="https://excelkida.com/image/github/claude-desktop-tally-mcp-server-tool-display.png" height="595" width="722" />
+
+### Gemini CLI
+Google's Gemini CLI supports MCP servers natively. Install Gemini CLI first:
+```
+npm install -g @google/gemini-cli
+```
+
+Then register the Tally MCP server with a single command:
+```
+gemini mcp add tally-prime node "D:\Software\Tally MCP Server\dist\index.mjs"
+```
+*Note: Replace the path with wherever you extracted the zip file.*
+
+Once added, launch Gemini CLI and the Tally tools will be available automatically.
 
 ### Perplexity Desktop
 Perplexity Desktop version for MacOS supports connecting to local MCP server. Configuration file (JSON format) is same as demonstrated for Claude Desktop. In absense of MacBook, documentation with screenshot could not be written. Kindly refer to below blog on perplexity website, which explains the steps.
