@@ -391,7 +391,7 @@ function extractReport(reportConfig, reportInputParams) {
                 if (!iNum)
                     return 0;
                 else
-                    return parseFloat(iNum.replace(/[\(\),]+/g, ''));
+                    return parseFloat(iNum.replace(/[\(\),]+/g, '').replace(/[^\d.\-]+$/, ''));
             };
             const processRows = (targetObjRows, targetConfigFields) => {
                 let data = [];

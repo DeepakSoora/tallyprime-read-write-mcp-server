@@ -40,7 +40,11 @@
                     <ALLLEDGERENTRIES.LIST>
                         <LEDGERNAME>{{customerLedger | escape}}</LEDGERNAME>
                         <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+                        <nunjuck>if forexAmount</nunjuck>
+                        <AMOUNT>-{{forexAmount}}{{forexCurrency}} @ {{forexRate}}/{{forexCurrency}} = -{{totalAmount}}</AMOUNT>
+                        <nunjuck>else</nunjuck>
                         <AMOUNT>-{{totalAmount}}</AMOUNT>
+                        <nunjuck>endif</nunjuck>
                     </ALLLEDGERENTRIES.LIST>
                     <nunjuck>endif</nunjuck>
 

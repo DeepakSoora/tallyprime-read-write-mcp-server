@@ -246,6 +246,21 @@
                         "identifier": "F06",
                         "name": "narration",
                         "datatype": "string"
+                    },
+                    {
+                        "identifier": "F07",
+                        "name": "forex_amount",
+                        "datatype": "number"
+                    },
+                    {
+                        "identifier": "F08",
+                        "name": "forex_rate",
+                        "datatype": "number"
+                    },
+                    {
+                        "identifier": "F09",
+                        "name": "forex_currency",
+                        "datatype": "string"
                     }
                 ]
             }
@@ -443,6 +458,28 @@
             }
         },
         {
+            "name": "voucher-detail",
+            "input": [
+                { "name": "voucherType",   "datatype": "string" },
+                { "name": "voucherNumber", "datatype": "string" },
+                { "name": "fromDate",      "datatype": "date"   },
+                { "name": "toDate",        "datatype": "date"   }
+            ],
+            "output": {
+                "datatype": "array",
+                "fields": [
+                    { "identifier": "F01", "name": "entry_type",     "datatype": "string" },
+                    { "identifier": "F02", "name": "ledger_name",    "datatype": "string" },
+                    { "identifier": "F03", "name": "quantity",       "datatype": "number" },
+                    { "identifier": "F04", "name": "rate",           "datatype": "number" },
+                    { "identifier": "F05", "name": "amount",         "datatype": "number" },
+                    { "identifier": "F06", "name": "forex_amount",   "datatype": "number" },
+                    { "identifier": "F07", "name": "forex_rate",     "datatype": "number" },
+                    { "identifier": "F08", "name": "forex_currency", "datatype": "string" }
+                ]
+            }
+        },
+        {
             "name": "bills-outstanding",
             "input": [
                 {
@@ -483,6 +520,16 @@
                         "name": "overdue_days",
                         "datatype": "number",
                         "identifier": "F05"
+                    },
+                    {
+                        "name": "forex_amount",
+                        "datatype": "number",
+                        "identifier": "F06"
+                    },
+                    {
+                        "name": "forex_currency",
+                        "datatype": "string",
+                        "identifier": "F07"
                     }
                 ]
             }

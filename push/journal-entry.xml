@@ -31,7 +31,11 @@
                     <ALLLEDGERENTRIES.LIST>
                         <LEDGERNAME>{{entry.ledgerName | escape}}</LEDGERNAME>
                         <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+                        <nunjuck>if entry.forexAmount</nunjuck>
+                        <AMOUNT>-{{entry.forexAmount}}{{entry.forexCurrency}} @ {{entry.forexRate}}/{{entry.forexCurrency}} = -{{entry.amount}}</AMOUNT>
+                        <nunjuck>else</nunjuck>
                         <AMOUNT>-{{entry.amount}}</AMOUNT>
+                        <nunjuck>endif</nunjuck>
                     </ALLLEDGERENTRIES.LIST>
                     <nunjuck>endfor</nunjuck>
 
@@ -40,7 +44,11 @@
                     <ALLLEDGERENTRIES.LIST>
                         <LEDGERNAME>{{entry.ledgerName | escape}}</LEDGERNAME>
                         <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                        <nunjuck>if entry.forexAmount</nunjuck>
+                        <AMOUNT>{{entry.forexAmount}}{{entry.forexCurrency}} @ {{entry.forexRate}}/{{entry.forexCurrency}} = {{entry.amount}}</AMOUNT>
+                        <nunjuck>else</nunjuck>
                         <AMOUNT>{{entry.amount}}</AMOUNT>
+                        <nunjuck>endif</nunjuck>
                     </ALLLEDGERENTRIES.LIST>
                     <nunjuck>endfor</nunjuck>
                 </VOUCHER>

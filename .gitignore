@@ -5,6 +5,9 @@ dist/*.mjs.map
 CLAUDE.md
 .claude/
 
+# Gemini
+.gemini/
+
 # Logs
 logs/
 *.log
@@ -19,3 +22,13 @@ tests/
 *.spec.ts
 coverage/
 junit.xml
+
+# Build artifacts
+build/
+dist-exe/
+
+# Docs
+docs/build-exe-plan.md
+
+# Debug / scratch scripts
+debug_tally.py

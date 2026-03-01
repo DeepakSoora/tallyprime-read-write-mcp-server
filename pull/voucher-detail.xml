@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ENVELOPE>
+    <HEADER>
+        <VERSION>1</VERSION>
+        <TALLYREQUEST>Export</TALLYREQUEST>
+        <TYPE>Data</TYPE>
+        <ID>MyTallyLiveReport</ID>
+    </HEADER>
+    <BODY>
+        <DESC>
+            <STATICVARIABLES>
+                <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+                <SVFROMDATE>{fromDate}</SVFROMDATE>
+                <SVTODATE>{toDate}</SVTODATE>
+                <nunjuck>if targetCompany</nunjuck>
+                <SVCURRENTCOMPANY>{{targetCompany | escape}}</SVCURRENTCOMPANY>
+                <nunjuck>endif</nunjuck>
+            </STATICVARIABLES>
+            <TDL>
+                <TDLMESSAGE>
+                    <REPORT NAME="MyTallyLiveReport">
+                        <FORMS>MyForm</FORMS>
+                    </REPORT>
+                    <FORM NAME="MyForm">
+                        <PARTS>LedPart01,LedPart02,LedPart03,LedPart04,LedPart05,LedPart06,LedPart07,LedPart08,LedPart09,LedPart10,InvPart01,InvPart02,InvPart03,InvPart04,InvPart05</PARTS>
+                        <XMLTAG>DATA</XMLTAG>
+                    </FORM>
+
+                    <!-- ===== LEDGER PARTS (indices 1-10) ===== -->
+
+                    <PART NAME="LedPart01"><LINES>LedLine01</LINES><REPEAT>LedLine01 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine01"><FIELDS>FLedT01,FLedN01,FLedQ01,FLedR01,FLedA01,FLedFA01,FLedFR01,FLedFC01</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT01"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN01"><SET>$AllLedgerEntries[1].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ01"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR01"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA01"><SET>if $$IsDebit:$AllLedgerEntries[1].Amount then -$$NumValue:$AllLedgerEntries[1].Amount else $$NumValue:$AllLedgerEntries[1].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA01"><SET>$$ForexValue:$AllLedgerEntries[1].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR01"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[1].Amount then 0 else $$NumValue:$AllLedgerEntries[1].Amount / $$ForexValue:$AllLedgerEntries[1].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC01"><SET>$$Currency:$AllLedgerEntries[1].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="LedPart02"><LINES>LedLine02</LINES><REPEAT>LedLine02 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine02"><FIELDS>FLedT02,FLedN02,FLedQ02,FLedR02,FLedA02,FLedFA02,FLedFR02,FLedFC02</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT02"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN02"><SET>$AllLedgerEntries[2].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ02"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR02"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA02"><SET>if $$IsDebit:$AllLedgerEntries[2].Amount then -$$NumValue:$AllLedgerEntries[2].Amount else $$NumValue:$AllLedgerEntries[2].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA02"><SET>$$ForexValue:$AllLedgerEntries[2].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR02"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[2].Amount then 0 else $$NumValue:$AllLedgerEntries[2].Amount / $$ForexValue:$AllLedgerEntries[2].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC02"><SET>$$Currency:$AllLedgerEntries[2].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="LedPart03"><LINES>LedLine03</LINES><REPEAT>LedLine03 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine03"><FIELDS>FLedT03,FLedN03,FLedQ03,FLedR03,FLedA03,FLedFA03,FLedFR03,FLedFC03</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT03"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN03"><SET>$AllLedgerEntries[3].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ03"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR03"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA03"><SET>if $$IsDebit:$AllLedgerEntries[3].Amount then -$$NumValue:$AllLedgerEntries[3].Amount else $$NumValue:$AllLedgerEntries[3].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA03"><SET>$$ForexValue:$AllLedgerEntries[3].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR03"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[3].Amount then 0 else $$NumValue:$AllLedgerEntries[3].Amount / $$ForexValue:$AllLedgerEntries[3].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC03"><SET>$$Currency:$AllLedgerEntries[3].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="LedPart04"><LINES>LedLine04</LINES><REPEAT>LedLine04 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine04"><FIELDS>FLedT04,FLedN04,FLedQ04,FLedR04,FLedA04,FLedFA04,FLedFR04,FLedFC04</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT04"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN04"><SET>$AllLedgerEntries[4].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ04"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR04"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA04"><SET>if $$IsDebit:$AllLedgerEntries[4].Amount then -$$NumValue:$AllLedgerEntries[4].Amount else $$NumValue:$AllLedgerEntries[4].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA04"><SET>$$ForexValue:$AllLedgerEntries[4].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR04"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[4].Amount then 0 else $$NumValue:$AllLedgerEntries[4].Amount / $$ForexValue:$AllLedgerEntries[4].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC04"><SET>$$Currency:$AllLedgerEntries[4].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="LedPart05"><LINES>LedLine05</LINES><REPEAT>LedLine05 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine05"><FIELDS>FLedT05,FLedN05,FLedQ05,FLedR05,FLedA05,FLedFA05,FLedFR05,FLedFC05</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT05"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN05"><SET>$AllLedgerEntries[5].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ05"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR05"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA05"><SET>if $$IsDebit:$AllLedgerEntries[5].Amount then -$$NumValue:$AllLedgerEntries[5].Amount else $$NumValue:$AllLedgerEntries[5].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA05"><SET>$$ForexValue:$AllLedgerEntries[5].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR05"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[5].Amount then 0 else $$NumValue:$AllLedgerEntries[5].Amount / $$ForexValue:$AllLedgerEntries[5].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC05"><SET>$$Currency:$AllLedgerEntries[5].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="LedPart06"><LINES>LedLine06</LINES><REPEAT>LedLine06 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine06"><FIELDS>FLedT06,FLedN06,FLedQ06,FLedR06,FLedA06,FLedFA06,FLedFR06,FLedFC06</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT06"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN06"><SET>$AllLedgerEntries[6].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ06"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR06"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA06"><SET>if $$IsDebit:$AllLedgerEntries[6].Amount then -$$NumValue:$AllLedgerEntries[6].Amount else $$NumValue:$AllLedgerEntries[6].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA06"><SET>$$ForexValue:$AllLedgerEntries[6].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR06"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[6].Amount then 0 else $$NumValue:$AllLedgerEntries[6].Amount / $$ForexValue:$AllLedgerEntries[6].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC06"><SET>$$Currency:$AllLedgerEntries[6].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="LedPart07"><LINES>LedLine07</LINES><REPEAT>LedLine07 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine07"><FIELDS>FLedT07,FLedN07,FLedQ07,FLedR07,FLedA07,FLedFA07,FLedFR07,FLedFC07</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT07"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN07"><SET>$AllLedgerEntries[7].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ07"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR07"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA07"><SET>if $$IsDebit:$AllLedgerEntries[7].Amount then -$$NumValue:$AllLedgerEntries[7].Amount else $$NumValue:$AllLedgerEntries[7].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA07"><SET>$$ForexValue:$AllLedgerEntries[7].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR07"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[7].Amount then 0 else $$NumValue:$AllLedgerEntries[7].Amount / $$ForexValue:$AllLedgerEntries[7].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC07"><SET>$$Currency:$AllLedgerEntries[7].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="LedPart08"><LINES>LedLine08</LINES><REPEAT>LedLine08 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine08"><FIELDS>FLedT08,FLedN08,FLedQ08,FLedR08,FLedA08,FLedFA08,FLedFR08,FLedFC08</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT08"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN08"><SET>$AllLedgerEntries[8].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ08"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR08"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA08"><SET>if $$IsDebit:$AllLedgerEntries[8].Amount then -$$NumValue:$AllLedgerEntries[8].Amount else $$NumValue:$AllLedgerEntries[8].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA08"><SET>$$ForexValue:$AllLedgerEntries[8].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR08"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[8].Amount then 0 else $$NumValue:$AllLedgerEntries[8].Amount / $$ForexValue:$AllLedgerEntries[8].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC08"><SET>$$Currency:$AllLedgerEntries[8].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="LedPart09"><LINES>LedLine09</LINES><REPEAT>LedLine09 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine09"><FIELDS>FLedT09,FLedN09,FLedQ09,FLedR09,FLedA09,FLedFA09,FLedFR09,FLedFC09</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT09"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN09"><SET>$AllLedgerEntries[9].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ09"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR09"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA09"><SET>if $$IsDebit:$AllLedgerEntries[9].Amount then -$$NumValue:$AllLedgerEntries[9].Amount else $$NumValue:$AllLedgerEntries[9].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA09"><SET>$$ForexValue:$AllLedgerEntries[9].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR09"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[9].Amount then 0 else $$NumValue:$AllLedgerEntries[9].Amount / $$ForexValue:$AllLedgerEntries[9].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC09"><SET>$$Currency:$AllLedgerEntries[9].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="LedPart10"><LINES>LedLine10</LINES><REPEAT>LedLine10 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="LedLine10"><FIELDS>FLedT10,FLedN10,FLedQ10,FLedR10,FLedA10,FLedFA10,FLedFR10,FLedFC10</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FLedT10"><SET>"Ledger"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FLedN10"><SET>$AllLedgerEntries[10].LedgerName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FLedQ10"><SET>0</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FLedR10"><SET>0</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FLedA10"><SET>if $$IsDebit:$AllLedgerEntries[10].Amount then -$$NumValue:$AllLedgerEntries[10].Amount else $$NumValue:$AllLedgerEntries[10].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFA10"><SET>$$ForexValue:$AllLedgerEntries[10].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFR10"><SET>if $$IsEmpty:$$Currency:$AllLedgerEntries[10].Amount then 0 else $$NumValue:$AllLedgerEntries[10].Amount / $$ForexValue:$AllLedgerEntries[10].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FLedFC10"><SET>$$Currency:$AllLedgerEntries[10].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <!-- ===== INVENTORY PARTS (indices 1-5) ===== -->
+
+                    <PART NAME="InvPart01"><LINES>InvLine01</LINES><REPEAT>InvLine01 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="InvLine01"><FIELDS>FInvT01,FInvN01,FInvQ01,FInvR01,FInvA01,FInvFA01,FInvFR01,FInvFC01</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FInvT01"><SET>"Inventory"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FInvN01"><SET>$AllInventoryEntries[1].StockItemName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FInvQ01"><SET>if $$IsInwards:$AllInventoryEntries[1].BilledQty then $$Number:$AllInventoryEntries[1].BilledQty else -$$Number:$AllInventoryEntries[1].BilledQty</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FInvR01"><SET>$$ForexValue:$AllInventoryEntries[1].Rate</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FInvA01"><SET>if $$IsDebit:$AllInventoryEntries[1].Amount then -$$NumValue:$AllInventoryEntries[1].Amount else $$NumValue:$AllInventoryEntries[1].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFA01"><SET>$$ForexValue:$AllInventoryEntries[1].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFR01"><SET>if $$IsEmpty:$$Currency:$AllInventoryEntries[1].Amount then 0 else $$NumValue:$AllInventoryEntries[1].Amount / $$ForexValue:$AllInventoryEntries[1].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFC01"><SET>$$Currency:$AllInventoryEntries[1].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="InvPart02"><LINES>InvLine02</LINES><REPEAT>InvLine02 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="InvLine02"><FIELDS>FInvT02,FInvN02,FInvQ02,FInvR02,FInvA02,FInvFA02,FInvFR02,FInvFC02</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FInvT02"><SET>"Inventory"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FInvN02"><SET>$AllInventoryEntries[2].StockItemName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FInvQ02"><SET>if $$IsInwards:$AllInventoryEntries[2].BilledQty then $$Number:$AllInventoryEntries[2].BilledQty else -$$Number:$AllInventoryEntries[2].BilledQty</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FInvR02"><SET>$$ForexValue:$AllInventoryEntries[2].Rate</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FInvA02"><SET>if $$IsDebit:$AllInventoryEntries[2].Amount then -$$NumValue:$AllInventoryEntries[2].Amount else $$NumValue:$AllInventoryEntries[2].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFA02"><SET>$$ForexValue:$AllInventoryEntries[2].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFR02"><SET>if $$IsEmpty:$$Currency:$AllInventoryEntries[2].Amount then 0 else $$NumValue:$AllInventoryEntries[2].Amount / $$ForexValue:$AllInventoryEntries[2].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFC02"><SET>$$Currency:$AllInventoryEntries[2].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="InvPart03"><LINES>InvLine03</LINES><REPEAT>InvLine03 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="InvLine03"><FIELDS>FInvT03,FInvN03,FInvQ03,FInvR03,FInvA03,FInvFA03,FInvFR03,FInvFC03</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FInvT03"><SET>"Inventory"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FInvN03"><SET>$AllInventoryEntries[3].StockItemName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FInvQ03"><SET>if $$IsInwards:$AllInventoryEntries[3].BilledQty then $$Number:$AllInventoryEntries[3].BilledQty else -$$Number:$AllInventoryEntries[3].BilledQty</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FInvR03"><SET>$$ForexValue:$AllInventoryEntries[3].Rate</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FInvA03"><SET>if $$IsDebit:$AllInventoryEntries[3].Amount then -$$NumValue:$AllInventoryEntries[3].Amount else $$NumValue:$AllInventoryEntries[3].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFA03"><SET>$$ForexValue:$AllInventoryEntries[3].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFR03"><SET>if $$IsEmpty:$$Currency:$AllInventoryEntries[3].Amount then 0 else $$NumValue:$AllInventoryEntries[3].Amount / $$ForexValue:$AllInventoryEntries[3].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFC03"><SET>$$Currency:$AllInventoryEntries[3].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="InvPart04"><LINES>InvLine04</LINES><REPEAT>InvLine04 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="InvLine04"><FIELDS>FInvT04,FInvN04,FInvQ04,FInvR04,FInvA04,FInvFA04,FInvFR04,FInvFC04</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FInvT04"><SET>"Inventory"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FInvN04"><SET>$AllInventoryEntries[4].StockItemName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FInvQ04"><SET>if $$IsInwards:$AllInventoryEntries[4].BilledQty then $$Number:$AllInventoryEntries[4].BilledQty else -$$Number:$AllInventoryEntries[4].BilledQty</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FInvR04"><SET>$$ForexValue:$AllInventoryEntries[4].Rate</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FInvA04"><SET>if $$IsDebit:$AllInventoryEntries[4].Amount then -$$NumValue:$AllInventoryEntries[4].Amount else $$NumValue:$AllInventoryEntries[4].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFA04"><SET>$$ForexValue:$AllInventoryEntries[4].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFR04"><SET>if $$IsEmpty:$$Currency:$AllInventoryEntries[4].Amount then 0 else $$NumValue:$AllInventoryEntries[4].Amount / $$ForexValue:$AllInventoryEntries[4].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFC04"><SET>$$Currency:$AllInventoryEntries[4].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <PART NAME="InvPart05"><LINES>InvLine05</LINES><REPEAT>InvLine05 : MyVoucherColl</REPEAT><SCROLLED>Vertical</SCROLLED></PART>
+                    <LINE NAME="InvLine05"><FIELDS>FInvT05,FInvN05,FInvQ05,FInvR05,FInvA05,FInvFA05,FInvFR05,FInvFC05</FIELDS><XMLTAG>ROW</XMLTAG></LINE>
+                    <FIELD NAME="FInvT05"><SET>"Inventory"</SET><XMLTAG>F01</XMLTAG></FIELD>
+                    <FIELD NAME="FInvN05"><SET>$AllInventoryEntries[5].StockItemName</SET><XMLTAG>F02</XMLTAG></FIELD>
+                    <FIELD NAME="FInvQ05"><SET>if $$IsInwards:$AllInventoryEntries[5].BilledQty then $$Number:$AllInventoryEntries[5].BilledQty else -$$Number:$AllInventoryEntries[5].BilledQty</SET><XMLTAG>F03</XMLTAG></FIELD>
+                    <FIELD NAME="FInvR05"><SET>$$ForexValue:$AllInventoryEntries[5].Rate</SET><XMLTAG>F04</XMLTAG></FIELD>
+                    <FIELD NAME="FInvA05"><SET>if $$IsDebit:$AllInventoryEntries[5].Amount then -$$NumValue:$AllInventoryEntries[5].Amount else $$NumValue:$AllInventoryEntries[5].Amount</SET><XMLTAG>F05</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFA05"><SET>$$ForexValue:$AllInventoryEntries[5].Amount</SET><XMLTAG>F06</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFR05"><SET>if $$IsEmpty:$$Currency:$AllInventoryEntries[5].Amount then 0 else $$NumValue:$AllInventoryEntries[5].Amount / $$ForexValue:$AllInventoryEntries[5].Amount</SET><XMLTAG>F07</XMLTAG></FIELD>
+                    <FIELD NAME="FInvFC05"><SET>$$Currency:$AllInventoryEntries[5].Amount</SET><XMLTAG>F08</XMLTAG></FIELD>
+
+                    <!-- ===== COLLECTION ===== -->
+                    <COLLECTION NAME="MyVoucherColl">
+                        <TYPE>Voucher</TYPE>
+                        <FETCH>AllLedgerEntries,AllInventoryEntries</FETCH>
+                        <FILTER>FiltType,FiltNum,FiltCanc,FiltOpt</FILTER>
+                    </COLLECTION>
+                    <SYSTEM TYPE="Formulae" NAME="FiltType">$VoucherTypeName = "{voucherType}"</SYSTEM>
+                    <SYSTEM TYPE="Formulae" NAME="FiltNum">$VoucherNumber = "{voucherNumber}"</SYSTEM>
+                    <SYSTEM TYPE="Formulae" NAME="FiltCanc">NOT $IsCancelled</SYSTEM>
+                    <SYSTEM TYPE="Formulae" NAME="FiltOpt">NOT $IsOptional</SYSTEM>
+                </TDLMESSAGE>
+            </TDL>
+        </DESC>
+    </BODY>
+</ENVELOPE>

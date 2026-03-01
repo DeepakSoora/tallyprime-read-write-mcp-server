@@ -320,7 +320,7 @@ export async function registerMcpServer(): Promise<McpServer> {
     'bills-outstanding',
     {
       title: 'Bills Outstanding',
-      description: `fetches pending overdue outstanding bills receivable or payable as on date with fields bill_date,reference_number,outstanding_amount,party_name,overdue_days. outstanding_amount = Debit is negative and Credit is positive. party_name = ledger_name. returns output cached in DuckDB in-memory table (specified in tableID property). Use query-database tool to run SQL queries against that table for further analysis`,
+      description: `fetches pending overdue outstanding bills receivable or payable as on date with fields bill_date,reference_number,outstanding_amount,party_name,overdue_days,forex_amount,forex_currency. outstanding_amount = Debit is negative and Credit is positive. party_name = ledger_name. forex_amount = foreign currency amount (null if local currency only), forex_currency = foreign currency symbol e.g. $ (null if local currency only). returns output cached in DuckDB in-memory table (specified in tableID property). Use query-database tool to run SQL queries against that table for further analysis`,
       inputSchema: {
         targetCompany: z.string().optional().describe('optional company name. leave it blank or skip this to choose for default company. validate it using list-master tool with collection as company if specified'),
         nature: z.enum(['receivable', 'payable']),
@@ -337,6 +337,19 @@ export async function registerMcpServer(): Promise<McpServer> {
         inputParams.set('targetCompany', args.targetCompany);
       }
       const resp = await handlePull('bills-outstanding', inputParams);
+
+      if (Array.isArray(resp.data) && resp.data.length > 0) {
+        resp.data = resp.data.map((row: any) => {
+          const { forex_amount, forex_currency, ...rest } = row;
+          const hasForex = forex_amount && forex_amount !== 0;
+          return {
+            ...rest,
+            forex_amount: hasForex ? forex_amount : null,
+            forex_currency: hasForex ? (forex_currency || null) : null,
+          };
+        });
+      }
+
       const tableId = await cacheTable('bills-outstanding', resp.data);
       if (resp.error) {
         return {
@@ -353,10 +366,68 @@ export async function registerMcpServer(): Promise<McpServer> {
   );
 
   mcpServer.registerTool(
+    'voucher-detail',
+    {
+      title: 'Voucher Detail',
+      description: `fetches complete voucher details with all ledger entries and all inventory entries by voucher type and number. Returns a flat table with fields entry_type, ledger_name, quantity, rate, amount, forex_amount, forex_rate, forex_currency. entry_type = "Ledger" for accounting entries or "Inventory" for stock item entries. ledger_name = ledger account name for Ledger rows or stock item name for Inventory rows. quantity = signed quantity (positive=inward, negative=outward) for Inventory rows, null for Ledger rows. rate = forex rate per unit for Inventory rows, null for Ledger rows. amount = debit is negative and credit is positive. forex_amount/forex_rate/forex_currency = null when not a foreign currency transaction. returns output cached in DuckDB in-memory table (specified in tableID property). Use query-database tool to run SQL queries against that table for further analysis`,
+      inputSchema: {
+        voucherType: z.string().describe('voucher type name (e.g., "Auction-Purchase", "Purchase", "Sales")'),
+        voucherNumber: z.string().describe('voucher number exactly as it appears in Tally'),
+        fromDate: z.string().describe('start date YYYY-MM-DD to search for the voucher (use fiscal year start if unsure, e.g. 2025-04-01)'),
+        toDate: z.string().describe('end date YYYY-MM-DD to search for the voucher (use fiscal year end if unsure, e.g. 2026-03-31)'),
+        targetCompany: z.string().optional().describe('optional company name. leave it blank or skip this to choose for default company.')
+      },
+      annotations: {
+        readOnlyHint: true,
+        openWorldHint: false
+      }
+    },
+    async (args) => {
+      const inputParams = new Map<string, any>([
+        ['voucherType', args.voucherType],
+        ['voucherNumber', args.voucherNumber],
+        ['fromDate', args.fromDate],
+        ['toDate', args.toDate]
+      ]);
+      if (args.targetCompany) {
+        inputParams.set('targetCompany', args.targetCompany);
+      }
+
+      const resp = await handlePull('voucher-detail', inputParams);
+
+      if (Array.isArray(resp.data)) {
+        resp.data = resp.data.filter((row: any) => row.ledger_name);
+      }
+
+      if (Array.isArray(resp.data) && resp.data.length > 0) {
+        resp.data = resp.data.map((row: any) => {
+          const { quantity, rate, forex_amount, forex_rate, forex_currency, ...rest } = row;
+          const isInventory = rest.entry_type === 'Inventory';
+          const hasForex = forex_amount && forex_amount !== 0;
+          return {
+            ...rest,
+            quantity: isInventory ? quantity : null,
+            rate: isInventory && rate && rate !== 0 ? rate : null,
+            forex_amount: hasForex ? forex_amount : null,
+            forex_rate: hasForex ? forex_rate : null,
+            forex_currency: hasForex ? (forex_currency || null) : null,
+          };
+        });
+      }
+
+      const tableId = await cacheTable('voucher-detail', resp.data);
+      if (resp.error) {
+        return { isError: true, content: [{ type: 'text', text: resp.error }] };
+      }
+      return { content: [{ type: 'text', text: JSON.stringify({ tableID: tableId }) }] };
+    }
+  );
+
+  mcpServer.registerTool(
     'ledger-account',
     {
       title: 'Ledger Account',
-      description: `fetches GL ledger account statement with voucher level details containing fields date, voucher_type, voucher_number, party_name, amount, narration . amount = debit is negative and credit is positive. party_name = ledger_name. returns output cached in DuckDB in-memory table (specified in tableID property). Use query-database tool to run SQL queries against that table for further analysis`,
+      description: `fetches GL ledger account statement with voucher level details containing fields date, voucher_type, voucher_number, party_name, amount, narration, forex_amount, forex_rate, forex_currency . amount = debit is negative and credit is positive. party_name = ledger_name. forex_amount = foreign currency amount (null if not applicable), forex_rate = exchange rate used for conversion (null if not applicable), forex_currency = foreign currency symbol e.g. $ (null if not applicable). returns output cached in DuckDB in-memory table (specified in tableID property). Use query-database tool to run SQL queries against that table for further analysis`,
       inputSchema: {
         targetCompany: z.string().optional().describe('optional company name. leave it blank or skip this to choose for default company. validate it using list-master tool with collection as company if specified'),
         ledgerName: z.string().describe('exact ledger name, validate it using list-master tool with collection as ledger'),
@@ -375,6 +446,27 @@ export async function registerMcpServer(): Promise<McpServer> {
       }
 
       const resp = await handlePull('ledger-account', inputParams);
+
+      if (Array.isArray(resp.data) && resp.data.length > 0) {
+        // Swap opening balance row from end to beginning
+        const lastItem = resp.data.pop();
+        resp.data.unshift(lastItem);
+
+        // Spread into new plain objects because tally.mts uses Object.defineProperty
+        // with configurable:false, preventing delete/reassign on the originals.
+        // Nullify forex fields when Tally returns 0 (non-forex vouchers).
+        resp.data = resp.data.map((row: any) => {
+          const { forex_amount, forex_rate, forex_currency, ...rest } = row;
+          const hasForex = forex_amount && forex_amount !== 0;
+          return {
+            ...rest,
+            forex_amount: hasForex ? forex_amount : null,
+            forex_rate: hasForex ? forex_rate : null,
+            forex_currency: hasForex ? (forex_currency || null) : null,
+          };
+        });
+      }
+
       const tableId = await cacheTable('ledger-account', resp.data);
       if (resp.error) {
         return {
@@ -383,12 +475,6 @@ export async function registerMcpServer(): Promise<McpServer> {
         };
       }
       else {
-
-        //swap opening balance row to the top since it came at the end from Tally XML response
-        if (Array.isArray(resp.data) && resp.data.length > 0) {
-          const lastItem = resp.data.pop();
-          resp.data.unshift(lastItem);
-        }
         return {
           content: [{ type: 'text', text: JSON.stringify({ tableID: tableId }) }]
         };
@@ -446,13 +532,16 @@ export async function registerMcpServer(): Promise<McpServer> {
     'create-purchase-entry',
     {
       title: 'Create Purchase Entry',
-      description: `creates a purchase voucher/invoice in Tally Prime. Supports two modes: "accounting" for simple ledger-to-ledger entries (e.g., expense purchases), and "invoice" for purchases with inventory items. For accounting mode, provide totalAmount. For invoice mode, provide inventoryEntries array with stock items. Additional ledger entries can be used for taxes (CGST, SGST, IGST), discounts, and freight charges. IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
+      description: `creates a purchase voucher/invoice in Tally Prime. Supports two modes: "accounting" for simple ledger-to-ledger entries (e.g., expense purchases), and "invoice" for purchases with inventory items. For accounting mode, provide totalAmount. For invoice mode, provide inventoryEntries array with stock items. Additional ledger entries can be used for taxes (CGST, SGST, IGST), discounts, and freight charges. For foreign currency purchases (accounting mode only), provide forexAmount, forexCurrency, and forexRate together; totalAmount is then computed as forexAmount * forexRate (or can be overridden explicitly). IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
       inputSchema: {
         date: z.string().describe('Date in YYYY-MM-DD format'),
         mode: z.enum(['accounting', 'invoice']).describe('"accounting" for simple ledger entries, "invoice" for purchases with inventory items'),
         supplierLedger: z.string().describe('Creditor/supplier ledger name - must exist in Tally under Sundry Creditors group'),
         purchaseLedger: z.string().describe('Purchase account ledger name - must exist in Tally under Purchase Accounts group'),
-        totalAmount: z.number().optional().describe('Total amount for accounting mode (required when mode is "accounting")'),
+        totalAmount: z.number().optional().describe('Total amount for accounting mode (required when mode is "accounting", unless forexAmount/forexCurrency/forexRate are provided)'),
+        forexAmount: z.number().optional().describe('Foreign currency amount for accounting mode (e.g., 128504). Provide together with forexCurrency and forexRate.'),
+        forexCurrency: z.string().optional().describe('Foreign currency symbol (e.g., "$"). Provide together with forexAmount and forexRate.'),
+        forexRate: z.number().optional().describe('Exchange rate: local units per foreign unit (e.g., 160 means 1 foreign = 160 local). Provide together with forexAmount and forexCurrency.'),
         inventoryEntries: z.array(z.object({
           stockItemName: z.string().describe('Stock item name - must exist in Tally'),
           quantity: z.number().describe('Quantity purchased'),
@@ -474,10 +563,18 @@ export async function registerMcpServer(): Promise<McpServer> {
     },
     async (args) => {
       // Validate required fields based on mode
-      if (args.mode === 'accounting' && (args.totalAmount === undefined || args.totalAmount === null)) {
+      const hasForex = args.forexAmount !== undefined && args.forexCurrency !== undefined && args.forexRate !== undefined;
+      const partialForex = [args.forexAmount, args.forexCurrency, args.forexRate].filter(v => v !== undefined).length;
+      if (partialForex > 0 && !hasForex) {
         return {
           isError: true,
-          content: [{ type: 'text', text: 'totalAmount is required for accounting mode' }]
+          content: [{ type: 'text', text: 'forexAmount, forexCurrency, and forexRate must all be provided together' }]
+        };
+      }
+      if (args.mode === 'accounting' && (args.totalAmount === undefined || args.totalAmount === null) && !hasForex) {
+        return {
+          isError: true,
+          content: [{ type: 'text', text: 'totalAmount is required for accounting mode (or provide forexAmount, forexCurrency, and forexRate)' }]
         };
       }
       if (args.mode === 'invoice' && (!args.inventoryEntries || args.inventoryEntries.length === 0)) {
@@ -501,7 +598,14 @@ export async function registerMcpServer(): Promise<McpServer> {
       inputParams.set('purchaseLedger', args.purchaseLedger);
 
       if (args.mode === 'accounting') {
-        inputParams.set('totalAmount', args.totalAmount);
+        const computedTotal = hasForex ? args.forexAmount! * args.forexRate! : undefined;
+        const totalAmount = args.totalAmount ?? computedTotal;
+        inputParams.set('totalAmount', totalAmount);
+        if (hasForex) {
+          inputParams.set('forexAmount', args.forexAmount);
+          inputParams.set('forexCurrency', args.forexCurrency);
+          inputParams.set('forexRate', args.forexRate);
+        }
       }
 
       if (args.mode === 'invoice') {
@@ -855,13 +959,16 @@ IMPORTANT: Validate ledger and stock item names using list-master tool before im
     'create-payment-entry',
     {
       title: 'Create Payment Entry',
-      description: `Creates a payment voucher in Tally Prime for recording cash/bank payments. Use for paying suppliers, expenses, salaries, etc. Supports paying multiple parties in a single voucher. IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
+      description: `Creates a payment voucher in Tally Prime for recording cash/bank payments. Use for paying suppliers, expenses, salaries, etc. Supports paying multiple parties in a single voucher. Each debit entry can optionally include forexAmount, forexCurrency, and forexRate for foreign currency payments. IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
       inputSchema: {
         date: z.string().describe('Date in YYYY-MM-DD format'),
         cashBankLedger: z.string().describe('Cash or Bank ledger name from which payment is made'),
         debitEntries: z.array(z.object({
           ledgerName: z.string().describe('Party or expense ledger name being paid'),
-          amount: z.number().describe('Amount paid (positive value)')
+          amount: z.number().describe('Amount paid (positive value)'),
+          forexAmount: z.number().optional().describe('Foreign currency amount (e.g., 128504). Provide together with forexCurrency and forexRate.'),
+          forexCurrency: z.string().optional().describe('Foreign currency symbol (e.g., "$"). Provide together with forexAmount and forexRate.'),
+          forexRate: z.number().optional().describe('Exchange rate: local units per foreign unit. Provide together with forexAmount and forexCurrency.')
         })).describe('One or more ledger entries to debit (party/expense being paid)'),
         narration: z.string().optional().describe('Notes/remarks for the voucher'),
         voucherNumber: z.string().optional().describe('Manual voucher number (auto-generated if blank)'),
@@ -936,13 +1043,16 @@ IMPORTANT: Validate ledger and stock item names using list-master tool before im
     'create-receipt-entry',
     {
       title: 'Create Receipt Entry',
-      description: `Creates a receipt voucher in Tally Prime for recording cash/bank receipts. Use for receiving payments from customers, income, etc. Supports receiving from multiple parties in a single voucher. IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
+      description: `Creates a receipt voucher in Tally Prime for recording cash/bank receipts. Use for receiving payments from customers, income, etc. Supports receiving from multiple parties in a single voucher. Each credit entry can optionally include forexAmount, forexCurrency, and forexRate for foreign currency receipts. IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
       inputSchema: {
         date: z.string().describe('Date in YYYY-MM-DD format'),
         cashBankLedger: z.string().describe('Cash or Bank ledger name receiving the payment'),
         creditEntries: z.array(z.object({
           ledgerName: z.string().describe('Party ledger name making the payment'),
-          amount: z.number().describe('Amount received (positive value)')
+          amount: z.number().describe('Amount received (positive value)'),
+          forexAmount: z.number().optional().describe('Foreign currency amount (e.g., 128504). Provide together with forexCurrency and forexRate.'),
+          forexCurrency: z.string().optional().describe('Foreign currency symbol (e.g., "$"). Provide together with forexAmount and forexRate.'),
+          forexRate: z.number().optional().describe('Exchange rate: local units per foreign unit. Provide together with forexAmount and forexCurrency.')
         })).describe('One or more ledger entries to credit (party paying us)'),
         narration: z.string().optional().describe('Notes/remarks for the voucher'),
         voucherNumber: z.string().optional().describe('Manual voucher number (auto-generated if blank)'),
@@ -1017,16 +1127,22 @@ IMPORTANT: Validate ledger and stock item names using list-master tool before im
     'create-journal-entry',
     {
       title: 'Create Journal Entry',
-      description: `Creates a journal voucher in Tally Prime for general-purpose accounting entries. Use for adjustments, provisions, write-offs, inter-account transfers, etc. Total debit amounts must equal total credit amounts. IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
+      description: `Creates a journal voucher in Tally Prime for general-purpose accounting entries. Use for adjustments, provisions, write-offs, inter-account transfers, etc. Total debit amounts must equal total credit amounts. Each entry can optionally include forexAmount, forexCurrency, and forexRate for foreign currency entries. IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
       inputSchema: {
         date: z.string().describe('Date in YYYY-MM-DD format'),
         debitEntries: z.array(z.object({
           ledgerName: z.string().describe('Ledger name to debit'),
-          amount: z.number().describe('Amount to debit (positive value)')
+          amount: z.number().describe('Amount to debit (positive value)'),
+          forexAmount: z.number().optional().describe('Foreign currency amount (e.g., 128504). Provide together with forexCurrency and forexRate.'),
+          forexCurrency: z.string().optional().describe('Foreign currency symbol (e.g., "$"). Provide together with forexAmount and forexRate.'),
+          forexRate: z.number().optional().describe('Exchange rate: local units per foreign unit. Provide together with forexAmount and forexCurrency.')
         })).describe('One or more ledger entries to debit'),
         creditEntries: z.array(z.object({
           ledgerName: z.string().describe('Ledger name to credit'),
-          amount: z.number().describe('Amount to credit (positive value)')
+          amount: z.number().describe('Amount to credit (positive value)'),
+          forexAmount: z.number().optional().describe('Foreign currency amount (e.g., 128504). Provide together with forexCurrency and forexRate.'),
+          forexCurrency: z.string().optional().describe('Foreign currency symbol (e.g., "$"). Provide together with forexAmount and forexRate.'),
+          forexRate: z.number().optional().describe('Exchange rate: local units per foreign unit. Provide together with forexAmount and forexCurrency.')
         })).describe('One or more ledger entries to credit'),
         narration: z.string().optional().describe('Notes/remarks for the voucher'),
         voucherNumber: z.string().optional().describe('Manual voucher number (auto-generated if blank)'),
@@ -1109,13 +1225,16 @@ IMPORTANT: Validate ledger and stock item names using list-master tool before im
     'create-sales-entry',
     {
       title: 'Create Sales Entry',
-      description: `Creates a sales voucher/invoice in Tally Prime. Supports two modes: "accounting" for simple ledger-to-ledger entries (e.g., service sales), and "invoice" for sales with inventory items. For accounting mode, provide totalAmount. For invoice mode, provide inventoryEntries array with stock items. Additional ledger entries can be used for taxes (CGST, SGST, IGST), discounts, and freight charges. IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
+      description: `Creates a sales voucher/invoice in Tally Prime. Supports two modes: "accounting" for simple ledger-to-ledger entries (e.g., service sales), and "invoice" for sales with inventory items. For accounting mode, provide totalAmount. For invoice mode, provide inventoryEntries array with stock items. Additional ledger entries can be used for taxes (CGST, SGST, IGST), discounts, and freight charges. For foreign currency sales (accounting mode only), provide forexAmount, forexCurrency, and forexRate together; totalAmount is then computed as forexAmount * forexRate (or can be overridden explicitly). IMPORTANT: Validate ledger names using list-master tool before creating entries.`,
       inputSchema: {
         date: z.string().describe('Date in YYYY-MM-DD format'),
         mode: z.enum(['accounting', 'invoice']).describe('"accounting" for simple ledger entries, "invoice" for sales with inventory items'),
         customerLedger: z.string().describe('Customer/debtor ledger name - must exist in Tally under Sundry Debtors group'),
         salesLedger: z.string().describe('Sales account ledger name - must exist in Tally under Sales Accounts group'),
-        totalAmount: z.number().optional().describe('Total amount for accounting mode (required when mode is "accounting")'),
+        totalAmount: z.number().optional().describe('Total amount for accounting mode (required when mode is "accounting", unless forexAmount/forexCurrency/forexRate are provided)'),
+        forexAmount: z.number().optional().describe('Foreign currency amount for accounting mode (e.g., 128504). Provide together with forexCurrency and forexRate.'),
+        forexCurrency: z.string().optional().describe('Foreign currency symbol (e.g., "$"). Provide together with forexAmount and forexRate.'),
+        forexRate: z.number().optional().describe('Exchange rate: local units per foreign unit (e.g., 160 means 1 foreign = 160 local). Provide together with forexAmount and forexCurrency.'),
         inventoryEntries: z.array(z.object({
           stockItemName: z.string().describe('Stock item name - must exist in Tally'),
           quantity: z.number().describe('Quantity sold'),
@@ -1136,10 +1255,18 @@ IMPORTANT: Validate ledger and stock item names using list-master tool before im
       }
     },
     async (args) => {
-      if (args.mode === 'accounting' && (args.totalAmount === undefined || args.totalAmount === null)) {
+      const hasSalesForex = args.forexAmount !== undefined && args.forexCurrency !== undefined && args.forexRate !== undefined;
+      const partialSalesForex = [args.forexAmount, args.forexCurrency, args.forexRate].filter(v => v !== undefined).length;
+      if (partialSalesForex > 0 && !hasSalesForex) {
         return {
           isError: true,
-          content: [{ type: 'text', text: 'totalAmount is required for accounting mode' }]
+          content: [{ type: 'text', text: 'forexAmount, forexCurrency, and forexRate must all be provided together' }]
+        };
+      }
+      if (args.mode === 'accounting' && (args.totalAmount === undefined || args.totalAmount === null) && !hasSalesForex) {
+        return {
+          isError: true,
+          content: [{ type: 'text', text: 'totalAmount is required for accounting mode (or provide forexAmount, forexCurrency, and forexRate)' }]
         };
       }
       if (args.mode === 'invoice' && (!args.inventoryEntries || args.inventoryEntries.length === 0)) {
@@ -1161,7 +1288,14 @@ IMPORTANT: Validate ledger and stock item names using list-master tool before im
       inputParams.set('salesLedger', args.salesLedger);
 
       if (args.mode === 'accounting') {
-        inputParams.set('totalAmount', args.totalAmount);
+        const computedTotal = hasSalesForex ? args.forexAmount! * args.forexRate! : undefined;
+        const totalAmount = args.totalAmount ?? computedTotal;
+        inputParams.set('totalAmount', totalAmount);
+        if (hasSalesForex) {
+          inputParams.set('forexAmount', args.forexAmount);
+          inputParams.set('forexCurrency', args.forexCurrency);
+          inputParams.set('forexRate', args.forexRate);
+        }
       }
 
       if (args.mode === 'invoice') {

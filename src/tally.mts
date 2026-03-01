@@ -437,7 +437,7 @@ function extractReport(reportConfig: m.ModelPullReportInfo, reportInputParams: M
                 if (!iNum)
                     return 0;
                 else
-                    return parseFloat(iNum.replace(/[\(\),]+/g, ''));
+                    return parseFloat(iNum.replace(/[\(\),]+/g, '').replace(/[^\d.\-]+$/, ''));
             }
 
             const processRows = (targetObjRows: any[], targetConfigFields: m.ModelPullReportOutputFieldInfo[]): any[] => {

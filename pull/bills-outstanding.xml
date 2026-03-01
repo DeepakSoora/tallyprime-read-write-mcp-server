@@ -30,7 +30,7 @@
                         <SCROLLED>Vertical</SCROLLED>
                     </PART>
                     <LINE NAME="MyLine01">
-                        <FIELDS>FldBillDate,FldBillRef,FldBillAmount,FldPartyName,FldOverDueDays</FIELDS>
+                        <FIELDS>FldBillDate,FldBillRef,FldBillAmount,FldPartyName,FldOverDueDays,FldForexAmt,FldForexCurrency</FIELDS>
                         <XMLTAG>ROW</XMLTAG>
                     </LINE>
                     <FIELD NAME="FldBillDate">
@@ -52,6 +52,14 @@
                     <FIELD NAME="FldOverDueDays">
                         <SET>$$Number:$_OverDueDays</SET>
                         <XMLTAG>F05</XMLTAG>
+                    </FIELD>
+                    <FIELD NAME="FldForexAmt">
+                        <SET>$$ForexValue:$ClosingBalance</SET>
+                        <XMLTAG>F06</XMLTAG>
+                    </FIELD>
+                    <FIELD NAME="FldForexCurrency">
+                        <SET>$$Currency:$ClosingBalance</SET>
+                        <XMLTAG>F07</XMLTAG>
                     </FIELD>
                     <COLLECTION NAME="MyCollection">
                         <TYPE>Bill</TYPE>

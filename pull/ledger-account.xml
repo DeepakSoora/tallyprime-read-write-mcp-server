@@ -31,11 +31,11 @@
                         <SCROLLED>Vertical</SCROLLED>
                     </PART>
                     <LINE NAME="MyLine01">
-                        <FIELDS>FldDate,FldVoucherType,FldVoucherNumber,FldPartyLedger,FldAmount,FldNarration</FIELDS>
+                        <FIELDS>FldDate,FldVoucherType,FldVoucherNumber,FldPartyLedger,FldAmount,FldNarration,FldForexAmt,FldForexRate,FldForexCurrency</FIELDS>
                         <XMLTAG>ROW</XMLTAG>
                     </LINE>
                     <LINE NAME="MyLineOp">
-                        <FIELDS>FldDateOp,FldVoucherTypeOp,FldVoucherNumberOp,FldPartyLedgerOp,FldAmountOp,FldNarrationOp</FIELDS>
+                        <FIELDS>FldDateOp,FldVoucherTypeOp,FldVoucherNumberOp,FldPartyLedgerOp,FldAmountOp,FldNarrationOp,FldForexAmtOp,FldForexRateOp,FldForexCurrencyOp</FIELDS>
                         <XMLTAG>ROW</XMLTAG>
                     </LINE>
                     <FIELD NAME="FldDate">
@@ -62,6 +62,18 @@
                         <SET>$Narration</SET>
                         <XMLTAG>F06</XMLTAG>
                     </FIELD>
+                    <FIELD NAME="FldForexAmt">
+                        <SET>$$ForexValue:$AllLedgerEntries[1,@@FilterLedgerEqual].Amount</SET>
+                        <XMLTAG>F07</XMLTAG>
+                    </FIELD>
+                    <FIELD NAME="FldForexRate">
+                        <SET>$$NumValue:$AllLedgerEntries[1,@@FilterLedgerEqual].Amount / $$ForexValue:$AllLedgerEntries[1,@@FilterLedgerEqual].Amount</SET>
+                        <XMLTAG>F08</XMLTAG>
+                    </FIELD>
+                    <FIELD NAME="FldForexCurrency">
+                        <SET>$$Currency:$AllLedgerEntries[1,@@FilterLedgerEqual].Amount</SET>
+                        <XMLTAG>F09</XMLTAG>
+                    </FIELD>
                     <FIELD NAME="FldDateOp">
                         <SET>##SVFromDate</SET>
                         <XMLTAG>F01</XMLTAG>
@@ -85,6 +97,18 @@
                     <FIELD NAME="FldNarrationOp">
                         <SET>""</SET>
                         <XMLTAG>F06</XMLTAG>
+                    </FIELD>
+                    <FIELD NAME="FldForexAmtOp">
+                        <SET>$$ForexValue:$OpeningBalance:Ledger:"{ledgerName}"</SET>
+                        <XMLTAG>F07</XMLTAG>
+                    </FIELD>
+                    <FIELD NAME="FldForexRateOp">
+                        <SET>$$NumValue:$OpeningBalance:Ledger:"{ledgerName}" / $$ForexValue:$OpeningBalance:Ledger:"{ledgerName}"</SET>
+                        <XMLTAG>F08</XMLTAG>
+                    </FIELD>
+                    <FIELD NAME="FldForexCurrencyOp">
+                        <SET>$$Currency:$OpeningBalance:Ledger:"{ledgerName}"</SET>
+                        <XMLTAG>F09</XMLTAG>
                     </FIELD>
                     <COLLECTION NAME="MyCollection">
                         <TYPE>Voucher</TYPE>
